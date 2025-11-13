@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { createAccessToken } from "../../../utils/jwt";
 import { dbPool } from "../../../db/mysql";
+import { LoginDTO } from "../../../schemas/auth.schemas";
 
 type LoginBody = {
   email: string;
@@ -16,7 +17,7 @@ interface UserRow {
 }
 
 export async function loginUser(req: Request, res: Response) {
-  const { email, password } = (req.body ?? {}) as Partial<LoginBody>;
+  const { email, password } = req.body as LoginDTO;
 
   // 1: Basic validation
   if (!email || !password) {

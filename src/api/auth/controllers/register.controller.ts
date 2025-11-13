@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { dbPool } from "../../../db/mysql";
+import { RegisterDTO } from "../../../schemas/auth.schemas";
 
 type RegisterBody = {
   email: string;
@@ -18,8 +19,9 @@ Nunca devolvemos password_hash → buena práctica de seguridad.
 export async function registerUser(req: Request, res: Response) {
   console.log(req.body);
 
-  const { email, password, fullName } = (req.body ??
-    {}) as Partial<RegisterBody>;
+  const { email, password, fullName } = req.body as RegisterDTO;
+  // (req.body ??
+  // {}) as Partial<RegisterBody>;
 
   console.log("email", email);
 
