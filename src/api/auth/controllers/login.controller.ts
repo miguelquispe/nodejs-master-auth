@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { dbPool } from "../../../db/mysql";
 import bcrypt from "bcrypt";
+import { createAccessToken } from "../../../utils/jwt";
+import { dbPool } from "../../../db/mysql";
 
 type LoginBody = {
   email: string;
@@ -49,6 +50,14 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(401).json({ message: "Invalid credentials." });
     }
 
+    // Crear el token de acceso con los claims necesarios
+    // claims: son los datos que queremos incluir en el token
+    // se llaman claims porque son "declaraciones" sobre el usuario
+    const accessToken = createAccessToken({
+      userId: user.id,
+      email: user.email,
+    });
+
     // 4: Successful login
     return res.status(200).json({
       message: "Login successful.",
@@ -57,6 +66,7 @@ export async function loginUser(req: Request, res: Response) {
         email: user.email,
         fullName: user.full_name,
       },
+      token: accessToken,
     });
   } catch (error) {
     console.error("Error during login: /auth/login", error);

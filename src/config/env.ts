@@ -11,4 +11,8 @@ export const env = {
     port: process.env.DB_PORT ? parseInt(process.env.DB_PORT) : 3306,
     database: process.env.DB_NAME ?? "master_auth",
   },
+  jwt: {
+    secret: process.env.JWT_SECRET ?? "key_default",
+    expiresIn: process.env.JWT_EXPIRES_IN ?? "1h",
+  },
 };
