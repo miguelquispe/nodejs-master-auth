@@ -3,6 +3,7 @@ import express from "express";
 // Import the health check handler
 import healthRouter from "./health/routes";
 import authRouter from "./api/auth/routes";
+import v1Routes from "./api/v1/routes";
 
 export function createApp() {
   const app = express();
@@ -20,6 +21,9 @@ export function createApp() {
 
   // Auth endpoints
   app.use("/api/auth", authRouter);
+
+  // Other endpoints can be added here
+  app.use("/api/v1", v1Routes);
 
   // Test endpoint
   app.get("/test", (req, res) => {
