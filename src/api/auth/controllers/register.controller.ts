@@ -8,6 +8,13 @@ type RegisterBody = {
   fullName?: string;
 };
 
+/*
+400 → errores de input (faltan campos, password corta).
+409 → conflicto: el recurso ya existe (email duplicado).
+201 → recurso creado correctamente.
+Nunca devolvemos password_hash → buena práctica de seguridad.
+*/
+
 export async function registerUser(req: Request, res: Response) {
   console.log(req.body);
 
