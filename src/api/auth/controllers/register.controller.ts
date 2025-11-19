@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { dbPool } from "../../../db/mysql";
 import { RegisterDTO } from "../../../schemas/auth.schemas";
@@ -16,7 +16,11 @@ type RegisterBody = {
 Nunca devolvemos password_hash → buena práctica de seguridad.
 */
 
-export async function registerUser(req: Request, res: Response) {
+export async function registerUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   console.log(req.body);
 
   const { email, password, fullName } = req.body as RegisterDTO;
@@ -78,6 +82,7 @@ export async function registerUser(req: Request, res: Response) {
     });
   } catch (error) {
     console.error("Error registering user:", error);
-    return res.status(500).json({ message: "Error registering user." });
+    // return res.status(500).json({ message: "Error registering user." });
+    return next(error);
   }
 }

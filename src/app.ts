@@ -7,6 +7,7 @@ import cors from "cors";
 import healthRouter from "./health/routes";
 import authRouter from "./api/auth/routes";
 import v1Routes from "./api/v1/routes";
+import { errorMiddleware } from "./middlewares/error.middleware";
 
 export function createApp() {
   const app = express();
@@ -35,6 +36,9 @@ export function createApp() {
   app.get("/test", (req, res) => {
     res.status(200).json({ message: "Test endpoint is working!" });
   });
+
+  // Middleware
+  app.use(errorMiddleware);
 
   return app;
 }

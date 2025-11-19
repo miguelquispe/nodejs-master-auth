@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { createAccessToken } from "../../../utils/jwt";
 import { dbPool } from "../../../db/mysql";
@@ -16,7 +16,11 @@ interface UserRow {
   full_name: string;
 }
 
-export async function loginUser(req: Request, res: Response) {
+export async function loginUser(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   const { email, password } = req.body as LoginDTO;
 
   // 1: Basic validation
@@ -71,6 +75,7 @@ export async function loginUser(req: Request, res: Response) {
     });
   } catch (error) {
     console.error("Error during login: /auth/login", error);
-    return res.status(500).json({ message: "Error internal when logging in." });
+    // return res.status(500).json({ message: "Error internal when logging in." });
+    return next(error);
   }
 }
