@@ -1,9 +1,17 @@
 import { dbPool } from "../../../db/mysql";
 import { AppError } from "../../../errors/AppError";
-import { LoginDTO, RegisterDTO } from "../../../schemas/auth.schemas";
+import {
+  LoginDTO,
+  RefreshTokenDTO,
+  RegisterDTO,
+} from "../../../schemas/auth.schemas";
 import bcrypt from "bcrypt";
 import { createAccessToken } from "../../../utils/jwt";
 import { Role } from "../../../types/roles";
+import {
+  generateRefreshToken,
+  getRefreshTokenExpiryDate,
+} from "../../../utils/refreshToken";
 
 interface UserRow {
   id: number;
@@ -11,6 +19,14 @@ interface UserRow {
   password_hash: string;
   full_name: string;
   role: Role;
+}
+
+interface RefreshTokenRow {
+  id: number;
+  user_id: number;
+  token: string;
+  expires_at: Date;
+  revoked: number;
 }
 
 export class AuthService {
@@ -92,6 +108,15 @@ export class AuthService {
       role: user.role,
     });
 
+    // Generate refresh token
+    const refreshToken = generateRefreshToken();
+    const expiresAt = getRefreshTokenExpiryDate();
+
+    await dbPool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [user.id, refreshToken, expiresAt]
+    );
+
     // 4: Successful login, return user data and token
     return {
       user: {
@@ -101,6 +126,96 @@ export class AuthService {
         role: user.role,
       },
       token,
+      refreshToken,
+    };
+  }
+
+  async refreshAccessToken(dto: RefreshTokenDTO) {
+    const { refreshToken } = dto;
+
+    // 1: Validate refresh token
+    const [rows] = await dbPool.query(
+      `SELECT id, user_id, expires_at, revoked 
+      FROM refresh_tokens 
+      WHERE token = ? LIMIT 1`,
+      [refreshToken]
+    );
+
+    const tokens = rows as RefreshTokenRow[];
+
+    // 2: Check if token exists
+    // No token found
+    if (tokens.length === 0) {
+      throw new AppError("Invalid refresh token.", 401);
+    }
+
+    // Token found
+    const storedToken = tokens[0];
+
+    // Check if token is revoked
+    if (storedToken.revoked) {
+      throw new AppError("Refresh token has been revoked.", 401);
+    }
+
+    // Check if token is expired
+    const now = new Date();
+    if (storedToken.expires_at <= now) {
+      throw new AppError("Refresh token has expired.", 401);
+    }
+
+    // 3: Get user data
+    const [userRows] = await dbPool.query(
+      `SELECT id, email, full_name, role 
+      FROM users 
+      WHERE id = ? LIMIT 1`,
+      [storedToken.user_id]
+    );
+
+    const users = userRows as Array<{
+      id: number;
+      email: string;
+      full_name: string;
+      role: Role;
+    }>;
+
+    // User should exist as token is valid
+    if (users.length === 0) {
+      throw new AppError("User not found for the provided refresh token.", 401);
+    }
+
+    // Create a new access token for the user
+    const user = users[0];
+
+    // Optional, you might want to revoke the used refresh token here
+    await dbPool.query("UPDATE refresh_tokens SET revoked = 1 WHERE id = ?", [
+      storedToken.id,
+    ]);
+
+    const newRefreshToken = generateRefreshToken();
+    const newExpiresAt = getRefreshTokenExpiryDate();
+
+    await dbPool.query(
+      "INSERT INTO refresh_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [user.id, newRefreshToken, newExpiresAt]
+    );
+
+    // 4: Generate new access token
+    const newAccessToken = createAccessToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    // 5: Return new tokens
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        role: user.role,
+      },
+      token: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   }
 }

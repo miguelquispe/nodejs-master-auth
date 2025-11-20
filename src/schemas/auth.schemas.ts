@@ -16,5 +16,12 @@ export const loginSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
 });
 
+export const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, { message: "Refresh token is required" }),
+});
+
+// DTOs: Data Transfer Objects
+// Estos tipos representan la forma de los datos que se esperan en las solicitudes
 export type RegisterDTO = z.infer<typeof registerSchema>;
 export type LoginDTO = z.infer<typeof loginSchema>;
+export type RefreshTokenDTO = z.infer<typeof refreshTokenSchema>;

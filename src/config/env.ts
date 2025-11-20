@@ -13,6 +13,11 @@ export const env = {
   },
   jwt: {
     secret: process.env.JWT_SECRET ?? "key_default",
-    expiresIn: process.env.JWT_EXPIRES_IN ?? "1h",
+    expiresIn: process.env.JWT_EXPIRES_IN ?? "15m",
+  },
+  refreshToken: {
+    days: process.env.REFRESH_TOKEN_DAYS
+      ? Number(process.env.REFRESH_TOKEN_DAYS)
+      : 7,
   },
 };

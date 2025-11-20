@@ -4,7 +4,8 @@ import { ZodSchema } from "zod/v3";
 export function validateBody(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
-
+    console.log("schema", schema);
+    console.log(result);
     if (!result.success) {
       const errors = result.error.errors.map((err) => ({
         field: err.path.join("."),
