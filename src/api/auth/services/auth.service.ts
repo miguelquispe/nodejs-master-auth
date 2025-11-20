@@ -3,12 +3,14 @@ import { AppError } from "../../../errors/AppError";
 import { LoginDTO, RegisterDTO } from "../../../schemas/auth.schemas";
 import bcrypt from "bcrypt";
 import { createAccessToken } from "../../../utils/jwt";
+import { Role } from "../../../types/roles";
 
 interface UserRow {
   id: number;
   email: string;
   password_hash: string;
   full_name: string;
+  role: Role;
 }
 
 export class AuthService {
@@ -58,7 +60,7 @@ export class AuthService {
 
     // 1:  Check if user exists
     const [rows] = await dbPool.query(
-      "SELECT id, email, password_hash, full_name FROM users WHERE email = ?",
+      "SELECT id, email, password_hash, full_name, role FROM users WHERE email = ?",
       [email]
     );
 
@@ -87,6 +89,7 @@ export class AuthService {
     const token = createAccessToken({
       userId: user.id,
       email: user.email,
+      role: user.role,
     });
 
     // 4: Successful login, return user data and token
@@ -95,6 +98,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
+        role: user.role,
       },
       token,
     };

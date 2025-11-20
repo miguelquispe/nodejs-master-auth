@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
+import { Role } from "../types/roles";
 
 export type AccessTokenPayload = {
   userId: number;
   email: string;
+  role: Role;
 };
 
 const expiresIn = env.jwt.expiresIn as any;

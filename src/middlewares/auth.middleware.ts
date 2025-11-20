@@ -1,6 +1,5 @@
-import { Request } from "express";
+import { NextFunction, Request, Response } from "express";
 import { AccessTokenPayload, verifyAccessToken } from "../utils/jwt";
-import { verify } from "crypto";
 
 // Extend the Express Request interface to include user property
 export interface AuthRequest extends Request {
@@ -15,7 +14,11 @@ export interface AuthRequest extends Request {
  * 4. if verified, attach the payload to req.user and call next()
  */
 
-export function authMiddleware(req: AuthRequest, res: any, next: any) {
+export function authMiddleware(
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) {
   const authHeader = req.header("Authorization");
 
   // Check if Authorization header is present and properly formatted with Bearer token

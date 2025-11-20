@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import userRouter from "./user.routes";
 import { authMiddleware } from "../../../middlewares/auth.middleware";
 
